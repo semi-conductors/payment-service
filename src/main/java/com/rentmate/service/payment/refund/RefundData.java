@@ -3,12 +3,21 @@ package com.rentmate.service.payment.refund;
 import com.rentmate.service.payment.status.PaymentStatus;
 
 public class RefundData {
-    private String rentalId;
+    private long rentalId;
     private String ownerId;
     private String renterId;
     private Long amount;
     private String paymentID;
     private PaymentStatus status;
+    private String errorMessaeg;
+
+    public String getErrorMessaeg() {
+        return errorMessaeg;
+    }
+
+    public void setErrorMessaeg(String errorMessaeg) {
+        this.errorMessaeg = errorMessaeg;
+    }
 
     public PaymentStatus getStatus() {
         return status;
@@ -27,11 +36,11 @@ public class RefundData {
         this.paymentID = paymentID;
     }
 
-    public String getRentalId() {
+    public long getRentalId() {
         return rentalId;
     }
 
-    public void setRentalId(String rentalId) {
+    public void setRentalId(long rentalId) {
         this.rentalId = rentalId;
     }
 

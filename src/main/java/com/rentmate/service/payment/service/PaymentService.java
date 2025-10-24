@@ -1,6 +1,8 @@
 package com.rentmate.service.payment.service;
 
 import com.rentmate.service.payment.data.PaymentData;
+import com.rentmate.service.payment.entity.PaymentDataEntity;
+import com.rentmate.service.payment.repo.PaymentRepository;
 import com.rentmate.service.payment.status.PaymentStatus;
 import com.rentmate.service.payment.refund.RefundData;
 import com.stripe.exception.StripeException;
@@ -22,6 +24,9 @@ public class PaymentService {
     private String stripekey;
     @Autowired
     PaymentDataService paymentDataService;
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     public PaymentService(PaymentDataService paymentDataService) {
         this.paymentDataService = paymentDataService;
     }
@@ -88,19 +93,28 @@ public class PaymentService {
 
     public RefundData refund(final RefundData refundData) throws StripeException {
         Stripe.apiKey = stripekey;
-        String paymentId = refundData.getPaymentID();
+        PaymentDataEntity paymentDataEntity = paymentRepository.findById(refundData.getRentalId()).orElse(null);
+        if (paymentDataEntity == null) {
+            refundData.setErrorMessaeg("Such rentalId Does not exist");
+            refundData.setStatus(PaymentStatus.FAILED);
+            return refundData;
+        }
+        String paymentId = paymentDataEntity.getRenterPaymentID();
         RefundCreateParams params = RefundCreateParams.builder()
                 .setPaymentIntent(paymentId)
-                .setAmount(refundData.getAmount())
+                .setAmount(paymentDataEntity.getInsurance())
                 .build();
         refundData.setStatus(PaymentStatus.PENDING);
         try {
             Refund refund = Refund.create(params);
         }catch(StripeException e) {
             refundData.setStatus(PaymentStatus.FAILED);
+            refundData.setErrorMessaeg(e.getMessage());
             return refundData;
         }
         refundData.setStatus(PaymentStatus.SUCCESS);
+        paymentDataEntity.setStatus(PaymentStatus.REFUNDED.toString());
+        paymentRepository.save(paymentDataEntity);
         return refundData;
     }
 }

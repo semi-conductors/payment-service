@@ -1,4 +1,5 @@
 package com.rentmate.service.payment.controller;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentmate.service.payment.data.PaymentData;
 import com.rentmate.service.payment.service.UserService;
 import com.rentmate.service.payment.service.PaymentService;
@@ -79,12 +80,14 @@ public class PaymentController {
         return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
     }
 
+
     @PostMapping("/createpayment")
     public Status createPayment(@RequestBody PaymentData paymentdata) throws StripeException {
         if (paymentdata.getRentalId() == null){
             return new Status(PaymentStatus.FAILED, "rentalId is not mentioned");
         }
         paymentdata.setPaymentData(userService);
+        paymentdata = paymentService.createPaymentIntent(paymentdata);
         if (paymentdata.getErrorMessage() != null){
             return new Status(PaymentStatus.FAILED, paymentdata.getErrorMessage());
         }
