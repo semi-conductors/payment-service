@@ -4,8 +4,8 @@ import com.rentmate.service.payment.status.PaymentStatus;
 
 public class RefundData {
     private long rentalId;
-    private String ownerId;
-    private String renterId;
+    private Long ownerId;
+    private Long renterId;
     private Long amount;
     private String paymentID;
     private PaymentStatus status;
@@ -44,19 +44,19 @@ public class RefundData {
         this.rentalId = rentalId;
     }
 
-    public String getOwnerId() {
+    public Long getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(String ownerId) {
+    public void setOwnerId(Long ownerId) {
         this.ownerId = ownerId;
     }
 
-    public String getRenterId() {
+    public Long getRenterId() {
         return renterId;
     }
 
-    public void setRenterId(String renterId) {
+    public void setRenterId(Long renterId) {
         this.renterId = renterId;
     }
 

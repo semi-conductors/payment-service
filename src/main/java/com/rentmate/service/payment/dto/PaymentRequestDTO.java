@@ -2,7 +2,7 @@ package com.rentmate.service.payment.dto;
 
 import java.util.Map;
 
-public class PaymentRequestDTO {
+public class    PaymentRequestDTO {
     private String eventType;
     private Object data;
 

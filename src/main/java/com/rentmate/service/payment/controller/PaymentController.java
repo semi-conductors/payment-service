@@ -18,12 +18,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
 
-@RestController("/payment")
+@RestController
+@RequestMapping("/payment")
 public class PaymentController {
     @Value("${stripe.api.key}")
     private String stripeKey;
@@ -81,18 +83,18 @@ public class PaymentController {
     }
 
 
-    @PostMapping("/createpayment")
-    public Status createPayment(@RequestBody PaymentData paymentdata) throws StripeException {
-        if (paymentdata.getRentalId() == null){
-            return new Status(PaymentStatus.FAILED, "rentalId is not mentioned");
-        }
-        paymentdata.setPaymentData(userService);
-        paymentdata = paymentService.createPaymentIntent(paymentdata);
-        if (paymentdata.getErrorMessage() != null){
-            return new Status(PaymentStatus.FAILED, paymentdata.getErrorMessage());
-        }
-        return new Status(paymentService.createPaymentIntent(paymentdata).getStatus());
-    }
+//    @PostMapping("/createpayment")
+//    public Status createPayment(@RequestBody PaymentData paymentdata) throws StripeException {
+//        if (paymentdata.getRentalId() == null){
+//            return new Status(PaymentStatus.FAILED, "rentalId is not mentioned");
+//        }
+//        paymentdata.setPaymentData(userService);
+//        paymentdata = paymentService.createPaymentIntent(paymentdata);
+//        if (paymentdata.getErrorMessage() != null){
+//            return new Status(PaymentStatus.FAILED, paymentdata.getErrorMessage());
+//        }
+//        return new Status(paymentService.createPaymentIntent(paymentdata).getStatus());
+//    }
 
     @PostMapping("/refund")
     public Status refund(@RequestBody RefundData refundData) throws StripeException {

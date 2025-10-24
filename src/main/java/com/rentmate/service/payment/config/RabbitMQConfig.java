@@ -16,6 +16,10 @@ public class RabbitMQConfig {
     public static final String EXCHANGE = "payment.exchange";
     public static final String REQUEST_ROUTING_KEY = "payment.request";
     public static final String RESPONSE_ROUTING_KEY = "payment.response";
+    public static final String RENTAL_EXCHANGE = "rental.exchange";
+    public static final String PAYMENT_ROUTING_KEY_PAID = "payment.paid";
+    public static final String PAYMENT_RETURN_ROUTING_KEY = "payment.refund.refunded";
+    public static final String PAYMENT_ROUTING_KEY_FAILED = "payment.failed";
 
     @Bean
     public TopicExchange paymentExchange() {
@@ -40,17 +44,5 @@ public class RabbitMQConfig {
     @Bean
     public Binding responseBinding(@Qualifier("paymentResponseQueue") Queue paymentResponseQueue, TopicExchange paymentExchange) {
         return BindingBuilder.bind(paymentResponseQueue).to(paymentExchange).with(RESPONSE_ROUTING_KEY);
-    }
-
-    @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(jsonMessageConverter());
-        return template;
     }
 }

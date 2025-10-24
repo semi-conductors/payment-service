@@ -1,14 +1,14 @@
 package com.rentmate.service.payment.dto;
 
 public class PaymentResponseDTO {
-    private String status;
-    private String message;
+    private Long rentalId;
+    private String eventType;
 
-    public PaymentResponseDTO(String status, String message) {
-        this.status = status;
-        this.message = message;
+    public PaymentResponseDTO(Long rentalId, String message) {
+        this.rentalId = rentalId;
+        this.eventType = message;
     }
 
-    public String getStatus() { return status; }
-    public String getMessage() { return message; }
+    public String getEventType() { return eventType; }
+    public Long getRentalId() { return rentalId; }
 }
