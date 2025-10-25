@@ -1,8 +1,8 @@
 package com.rentmate.service.payment.dto;
 
 public class PaymentResponseDTO {
-    private Long rentalId;
     private String eventType;
+    private Long rentalId;
 
     public PaymentResponseDTO(Long rentalId, String message) {
         this.rentalId = rentalId;

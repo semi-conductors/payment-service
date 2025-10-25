@@ -45,4 +45,15 @@ public class RabbitMQConfig {
     public Binding responseBinding(@Qualifier("paymentResponseQueue") Queue paymentResponseQueue, TopicExchange paymentExchange) {
         return BindingBuilder.bind(paymentResponseQueue).to(paymentExchange).with(RESPONSE_ROUTING_KEY);
     }
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(jsonMessageConverter());
+        return template;
+    }
 }

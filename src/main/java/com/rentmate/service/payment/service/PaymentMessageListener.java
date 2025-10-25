@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentmate.service.payment.config.RabbitMQConfig;
 import com.rentmate.service.payment.controller.PaymentController;
 import com.rentmate.service.payment.data.PaymentData;
+import com.rentmate.service.payment.dto.MessageRequest;
 import com.rentmate.service.payment.entity.UserEntity;
 import com.rentmate.service.payment.refund.RefundData;
 import com.rentmate.service.payment.service.PaymentService;
@@ -41,88 +42,90 @@ public PaymentMessageListener(ObjectMapper objectMapper,
     this.rabbitTemplate = rabbitTemplate;
 }
 
-@RabbitListener(queues = RabbitMQConfig.REQUEST_QUEUE)
-public void handleRequest(String message) {
-    log.info("start handling request");
-    try {
-        PaymentRequestDTO request = objectMapper.readValue(message, PaymentRequestDTO.class);
-        PaymentResponseDTO response;
 
-        switch (request.geteventType()) {
-            case "rental.approved" -> {
-                log.info("handling paymentRequest");
-                PaymentData paymentdata = objectMapper.convertValue(request.getData(), PaymentData.class);
-                Status status = new Status();
-                if (paymentdata.getRentalId() == null){
-                    status.setrentalId(null);
-                    status.setEventType("payment.failed");
-                    response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
-
-                    rabbitTemplate.convertAndSend(
-                            RabbitMQConfig.RENTAL_EXCHANGE,
-                            RabbitMQConfig.PAYMENT_ROUTING_KEY_FAILED,
-                            objectMapper.writeValueAsString(response)
-                    );
-                    log.info("published paid event to rentalService");
-                    break;
-                }
-                log.info("before payment");
-                paymentdata.setPaymentData(userService);
-                paymentdata = paymentService.createPaymentIntent(paymentdata);
-                log.info("payment created");
-                status.setrentalId(paymentdata.getRentalId());
-                if (paymentdata.getErrorMessage() != null){
-                    status.setEventType("payment.failed");
-                    response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
-                    rabbitTemplate.convertAndSend(
-                            RabbitMQConfig.RENTAL_EXCHANGE,
-                            RabbitMQConfig.PAYMENT_ROUTING_KEY_FAILED,
-                            objectMapper.writeValueAsString(response)
-                    );
-                }else {
-                    log.info("building payloads");
-                    status.setEventType("payment.paid");
-                    response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
-                    rabbitTemplate.convertAndSend(
-                            RabbitMQConfig.RENTAL_EXCHANGE,
-                            RabbitMQConfig.PAYMENT_ROUTING_KEY_PAID,
-                            objectMapper.writeValueAsString(response)
-                    );
-                    log.info("payment published event to rentalService");
-
-                }
-
-            }
-            case "renter.refund" -> {
-                RefundData refundData = objectMapper.convertValue(request.getData(), RefundData.class);
-                refundData = paymentService.refund(refundData);
-                Status status = new Status(refundData.getRentalId(), "payment.refunded");
-                response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
-                rabbitTemplate.convertAndSend(
-                        RabbitMQConfig.RENTAL_EXCHANGE,
-                        RabbitMQConfig.PAYMENT_RETURN_ROUTING_KEY,
-                        objectMapper.writeValueAsString(response)
-                );
-            }
-            default -> {
-                response = new PaymentResponseDTO(null, null);
-            }
-        }
-
-
-    } catch (Exception e) {
-        PaymentResponseDTO errorResponse =
-                new PaymentResponseDTO(null, "payment.failed");
+    @RabbitListener(queues = RabbitMQConfig.REQUEST_QUEUE)
+    public void handleRequest(MessageRequest message) {
+        log.info("start handling request");
         try {
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.EXCHANGE,
-                    RabbitMQConfig.RESPONSE_ROUTING_KEY,
-                    objectMapper.writeValueAsString(errorResponse)
-            );
-        } catch (Exception ignored) {
-            log.info("error###########");
+            switch (message.getEventType()) {
+                case "rental.approved" -> {
+                    PaymentResponseDTO response;
+                    log.info("handling paymentRequest");
+                    PaymentData paymentdata = message.getPaymentData();
+                    Status status = new Status();
+                    if (paymentdata.getRentalId() == null){
+                        status.setrentalId(null);
+                        status.setEventType("payment.failed");
+                        response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
+
+                        rabbitTemplate.convertAndSend(
+                                RabbitMQConfig.RENTAL_EXCHANGE,
+                                RabbitMQConfig.PAYMENT_ROUTING_KEY_FAILED,
+                                response
+                        );
+                        log.info("published paid event to rentalService");
+                        break;
+                    }
+                    log.info("before payment");
+                    paymentdata.setPaymentData(userService);
+                    paymentdata = paymentService.createPaymentIntent(paymentdata);
+                    log.info("payment created");
+                    status.setrentalId(paymentdata.getRentalId());
+                    if (paymentdata.getErrorMessage() != null){
+                        status.setEventType("payment.failed");
+                        response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
+                        rabbitTemplate.convertAndSend(
+                                RabbitMQConfig.RENTAL_EXCHANGE,
+                                RabbitMQConfig.PAYMENT_ROUTING_KEY_FAILED,
+                                response
+                        );
+                    }else {
+                        log.info("building payloads");
+                        status.setEventType("payment.paid");
+                        response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
+                        rabbitTemplate.convertAndSend(
+                                RabbitMQConfig.RENTAL_EXCHANGE,
+                                RabbitMQConfig.PAYMENT_ROUTING_KEY_PAID,
+                               response
+                        );
+                        log.info("payment published event to rentalService");
+
+                    }
+
+                }
+                case "rental.refund" -> {
+                    log.info("handle refund event");
+                    PaymentResponseDTO response;
+                    RefundData refundData = message.getRefundData();
+                    refundData = paymentService.refund(refundData);
+                    Status status = new Status(refundData.getRentalId(), "payment.refunded");
+                    response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
+                    rabbitTemplate.convertAndSend(
+                            RabbitMQConfig.RENTAL_EXCHANGE,
+                            RabbitMQConfig.PAYMENT_RETURN_ROUTING_KEY,
+                            response
+                    );
+                    log.info("publish refund event to rental service");
+                }
+                default -> {
+                    PaymentResponseDTO response = new PaymentResponseDTO(null, null);
+                }
+            }
+
+
+        } catch (Exception e) {
+            PaymentResponseDTO errorResponse =
+                    new PaymentResponseDTO(null, "payment.failed");
+            try {
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.EXCHANGE,
+                        RabbitMQConfig.RESPONSE_ROUTING_KEY,
+                       errorResponse
+                );
+            } catch (Exception ignored) {
+                log.info("error###########");
+            }
         }
     }
-}
 }
 
