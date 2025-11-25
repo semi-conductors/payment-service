@@ -58,7 +58,7 @@ public class PaymentController {
     }
 
     @PostMapping("/createowner")
-    public ResponseEntity<?> createOwner(@RequestBody User user) throws StripeException {
+    public ResponseEntity<?> createOwner(@RequestBody User user) throws StripeException { ///  TODO: CALL IT AT USER REGISTER
         Stripe.apiKey = stripeKey;
         Account account = stripeFactory.createAccount(user);
         if (account == null){
@@ -79,7 +79,9 @@ public class PaymentController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(accountLink.getUrl()));
-        return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
+
+
+        return ResponseEntity.ok(Map.of("location", headers.getLocation()));
     }
 
 
@@ -114,5 +116,6 @@ public class PaymentController {
                         "error", "Failed to create account"
                 ));
     }
+
 
 }

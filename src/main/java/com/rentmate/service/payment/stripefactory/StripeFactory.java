@@ -50,8 +50,8 @@ public class StripeFactory {
         Map<String, Object> accountLinkParams = new HashMap<>();
         accountLinkParams.put("account", account.getId());
         accountLinkParams.put("type", "account_onboarding");
-        accountLinkParams.put("refresh_url", "http://localhost:8080/onboarding");
-        accountLinkParams.put("return_url", "http://localhost:8080/success");
+        accountLinkParams.put("refresh_url", "http://localhost:4200/");
+        accountLinkParams.put("return_url", "http://localhost:4200/profile"); /// TODO: CHANGE IT TO user profile
         AccountLink accountLink;
         try {
             accountLink = AccountLink.create(accountLinkParams);
