@@ -60,6 +60,7 @@ public class PaymentController {
     @PostMapping("/createowner")
     public ResponseEntity<?> createOwner(@RequestBody User user) throws StripeException { ///  TODO: CALL IT AT USER REGISTER
         Stripe.apiKey = stripeKey;
+        Customer customer = stripeFactory.createCustomer(user);
         Account account = stripeFactory.createAccount(user);
         if (account == null){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
