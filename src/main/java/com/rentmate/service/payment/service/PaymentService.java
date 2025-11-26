@@ -81,10 +81,9 @@ public class PaymentService {
         try {
             payment = PaymentIntent.create(params);
         } catch(StripeException e) {
-            throw new RuntimeException(e);
-//            paymentData.setStatus(PaymentStatus.FAILED);
-//            paymentData.setErrorMessage(e.getMessage());
-//            return paymentData;
+            paymentData.setStatus(PaymentStatus.FAILED);
+            paymentData.setErrorMessage(e.getMessage());
+            return paymentData;
         }
         paymentData.setRenterPaymentID(payment.getId());
         return paymentData;
