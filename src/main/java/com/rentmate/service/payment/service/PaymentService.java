@@ -63,13 +63,12 @@ public class PaymentService {
         try {
             transfer = Transfer.create(transferParams);
         } catch (StripeException e) {
-            throw new RuntimeException(e);
-//            RefundData refundData = new RefundData();
-//            refundData.setPaymentID(paymentData.getRenterPaymentID());
-//            refundData.setAmount(paymentData.getAmount());
-//            refund(refundData);
-//            paymentData.setStatus(PaymentStatus.FAILED);
-//            return paymentData;
+            RefundData refundData = new RefundData();
+            refundData.setPaymentID(paymentData.getRenterPaymentID());
+            refundData.setAmount(paymentData.getAmount());
+            refund(refundData);
+            paymentData.setStatus(PaymentStatus.FAILED);
+            return paymentData;
         }
         paymentData.setOwnerPaymentID(transfer.getId());
         setSucessPayment(paymentData);

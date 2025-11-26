@@ -20,6 +20,9 @@ public class RabbitMQConfig {
     public static final String PAYMENT_ROUTING_KEY_PAID = "payment.paid";
     public static final String PAYMENT_RETURN_ROUTING_KEY = "payment.refund.refunded";
     public static final String PAYMENT_ROUTING_KEY_FAILED = "payment.failed";
+    public static final String NOTIFICATION_EXCHANGE = "notification-exchange";
+    public static final String NOTIFICATION_QUEUE = "notification-queue";
+    public static final String NOTIFICATION_ROUTING_KEY = "notification.key";
 
     @Bean
     public TopicExchange paymentExchange() {
