@@ -77,17 +77,7 @@ public PaymentMessageListener(ObjectMapper objectMapper,
                                 response
                         );
                     }else {
-                        log.info("building payloads");
-                        status.setEventType("payment.paid");
                         notifiaction.sendPaidNotification(paymentdata.getAmount(), paymentdata.getRenterId());
-                        response = new PaymentResponseDTO(status.getRentalId(), status.getEventType());
-                        rabbitTemplate.convertAndSend(
-                                RabbitMQConfig.RENTAL_EXCHANGE,
-                                RabbitMQConfig.PAYMENT_ROUTING_KEY_PAID,
-                               response
-                        );
-                        log.info("payment published event to rentalService");
-
                     }
 
                 }

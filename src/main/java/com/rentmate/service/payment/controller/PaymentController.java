@@ -1,6 +1,9 @@
 package com.rentmate.service.payment.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rentmate.service.payment.config.RabbitMQConfig;
 import com.rentmate.service.payment.data.PaymentData;
+import com.rentmate.service.payment.dto.PaymentResponseDTO;
+import com.rentmate.service.payment.service.Notifiaction;
 import com.rentmate.service.payment.service.UserService;
 import com.rentmate.service.payment.service.PaymentService;
 import com.rentmate.service.payment.refund.RefundData;
@@ -20,9 +23,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
+import com.rentmate.service.payment.dto.PaymentResponseDTO;
 import java.net.URI;
 import java.util.Map;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import com.rentmate.service.payment.config.RabbitMQConfig;
+
+
 
 @RestController
 @RequestMapping("/payment")
@@ -38,6 +45,12 @@ public class PaymentController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    Notifiaction notifiaction;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @DeleteMapping("/delete")
     public Status delete (@RequestBody User user) throws StripeException {
@@ -86,18 +99,17 @@ public class PaymentController {
     }
 
 
-//    @PostMapping("/createpayment")
-//    public Status createPayment(@RequestBody PaymentData paymentdata) throws StripeException {
-//        if (paymentdata.getRentalId() == null){
-//            return new Status(PaymentStatus.FAILED, "rentalId is not mentioned");
-//        }
-//        paymentdata.setPaymentData(userService);
-//        paymentdata = paymentService.createPaymentIntent(paymentdata);
-//        if (paymentdata.getErrorMessage() != null){
-//            return new Status(PaymentStatus.FAILED, paymentdata.getErrorMessage());
-//        }
-//        return new Status(paymentService.createPaymentIntent(paymentdata).getStatus());
-//    }
+    @PostMapping("/createpayment")
+    public Status createPayment(@RequestParam("id") Long rentalId) {
+        PaymentResponseDTO response = new PaymentResponseDTO(rentalId, "payment.paid");
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.RENTAL_EXCHANGE,
+                RabbitMQConfig.PAYMENT_ROUTING_KEY_PAID,
+                response
+        );
+
+        return new Status(PaymentStatus.SUCCESS);
+    }
 
     @PostMapping("/refund")
     public Status refund(@RequestBody RefundData refundData) throws StripeException {
